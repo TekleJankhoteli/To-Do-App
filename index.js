@@ -13,7 +13,7 @@ let all=document.querySelector(".all");
 let active=document.querySelector(".active");
 let completed=document.querySelector(".completed");
 
-
+let completedTaskIds = JSON.parse(localStorage.getItem("completedTaskIds")) || [];
 
 DL.addEventListener("click",()=>{
     darkMode();
@@ -41,6 +41,8 @@ let toDoes=JSON.parse(localStorage.getItem("toDoes")) || [];
 
 let count=JSON.parse(localStorage.getItem("count"))|| 0;
 
+
+
 form.addEventListener("submit",(e)=>{
     sumbmitFunction(e)
 })
@@ -63,6 +65,8 @@ function sumbmitFunction(e){
         }
         toDoes.push(newTodo)
 
+
+        
         localStorage.setItem("count",JSON.stringify(count))
         localStorage.setItem("toDoes",JSON.stringify(toDoes))
         
@@ -80,7 +84,8 @@ function drawTodo(){
 
 
         `
-        <li class=${el.active ? "toDoesText" :""}><img ${el.id} class="circleImg" src="./assets/circle.svg" > 
+        <li class=${el.active ? "toDoesText" :""}>
+        <img data-id="${el.id}" class="circleImg" src="./assets/circle.svg"> 
         ${el.title}
         <img class="xImg" src="./assets/x.svg" > 
         </li>
@@ -92,18 +97,19 @@ function drawTodo(){
     )).join("")
 
 
-    const circleImgs = document.querySelectorAll(".circleImg");
+    
    
-    circleImgs.forEach((circleImg) => {
-      circleImg.addEventListener("click", () => {
-        changeCircleImg(circleImg);
-      });
+    todoesul.addEventListener("click", event => {
+        if (event.target.matches(".circleImg")) {
+            changeCircleImg(event.target);
+        }
     });
-
 
 
  
   }
+
+  
   
 
 
@@ -118,33 +124,31 @@ function drawTodo(){
 
 
 function changeCircleImg(circleImg) {
-    const li=circleImg.closest("li");
-    
+    const li = circleImg.closest("li");
+    const todoId = parseInt(circleImg.getAttribute("data-id"));
 
-
+    const todo = toDoes.find(todo => todo.id === todoId);
+    if (todo) {
+        todo.active = !todo.active;
+    }
 
     circleImg.classList.toggle("doneImg");
     li.classList.toggle("doneText");
 
-  
     if (circleImg.classList.contains("doneImg")) {
-      circleImg.src = "./assets/circle.svg";
-      li.style.textDecoration = "none";
-      li.style.color="#494C6B";
-
-    
-     
+        circleImg.src = "./assets/circle.svg";
+        li.style.textDecoration = "none";
+        li.style.color = "#494C6B";
     } else {
-      circleImg.src = "./assets/done.svg";
-    li.style.textDecoration = "line-through";
-    li.style.color="#C8CBE7";
-  
-    
+        circleImg.src = "./assets/done.svg";
+        li.style.textDecoration = "line-through";
+        li.style.color = "#C8CBE7";
     }
 
+    localStorage.setItem("toDoes", JSON.stringify(toDoes));
+}
 
 
-   localStorage.setItem("toDoes", JSON.stringify(toDoes))
-  
-  }
+
+
   drawTodo()
