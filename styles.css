@@ -157,6 +157,24 @@ li{
     color: #9495A5;
 }
 
+.clearCompleted:hover{
+    cursor: pointer;
+    color: #494C6B;
+}
+
+.all:hover{
+    cursor: pointer;
+    color: #494C6B;
+}
+ .active:hover{
+    cursor: pointer;
+    color: #494C6B;
+ }
+  .completed:hover{
+    cursor: pointer;
+    color: #494C6B;
+}
+
 .allActiveCompleted{
     display: flex;
     justify-content: space-around;
@@ -196,9 +214,21 @@ li{
     }
 
 
-    .toDoesText.doneText{
-        background-color: red;
-        color: green;
+    .toDoesText{
+        text-decoration: line-through;
+       
+    }
+
+    .circleImg:hover{
+        cursor: pointer;
+    }
+
+    .xImg:hover{
+        cursor: pointer;
+    }
+
+    .point{
+        color: blue;
     }
 
     

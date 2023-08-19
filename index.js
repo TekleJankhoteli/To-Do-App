@@ -13,32 +13,47 @@ let all=document.querySelector(".all");
 let active=document.querySelector(".active");
 let completed=document.querySelector(".completed");
 
-let completedTaskIds = JSON.parse(localStorage.getItem("completedTaskIds")) || [];
 
-DL.addEventListener("click",()=>{
-    darkMode();
+
+DL.addEventListener("click", () => {
+    toggleDarkMode();
+    saveDarkModeState();
 })
 
-function darkMode(){
-container.classList.toggle("darkContainer");
-   
-    if(container.classList.contains("darkContainer")){
-        DL.src="./assets/sun.svg" ;
-    }else{
-        DL.src="./assets/moon.svg"  
-    }
 
+
+function toggleDarkMode() {
+    container.classList.toggle("darkContainer");
     container2.classList.toggle("darkContainer2");
     header.classList.toggle("darkheader");
     input.classList.toggle("darkInput");
     todoesul.classList.toggle("darktodoesul");
     itemsleftAndClear.classList.toggle("darkitemsleftAndClear");
-    allActiveCompleted.classList.toggle("darkallActiveCompleted")
-    
+    allActiveCompleted.classList.toggle("darkallActiveCompleted");
+    if (container.classList.contains("darkContainer")) {
+        DL.src = "./assets/sun.svg";
+    } else {
+        DL.src = "./assets/moon.svg";
+    }
+}
+
+
+
+function saveDarkModeState() {
+    const isDarkMode = container.classList.contains("darkContainer");
+    localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
+}
+
+
+
+function loadDarkModeState() {
+    const isDarkMode = JSON.parse(localStorage.getItem("darkMode")) || false;
+    if (isDarkMode) {
+        toggleDarkMode();
+    }
 }
 
 let toDoes=JSON.parse(localStorage.getItem("toDoes")) || [];
-
 let count=JSON.parse(localStorage.getItem("count"))|| 0;
 
 
@@ -66,89 +81,119 @@ function sumbmitFunction(e){
         toDoes.push(newTodo)
 
 
-        
-        localStorage.setItem("count",JSON.stringify(count))
+
         localStorage.setItem("toDoes",JSON.stringify(toDoes))
-        
+        localStorage.setItem("count",JSON.stringify(count))
         drawTodo()
        
     }
 }
 
-function drawTodo(){
 
 
-    
-    input.value=""
-    todoesul.innerHTML=toDoes.map(el=>(
 
 
+function drawTodo() {
+    input.value = "";
+    todoesul.innerHTML = toDoes.map(el => (
         `
-        <li class=${el.active ? "toDoesText" :""}>
-        <img data-id="${el.id}" class="circleImg" src="./assets/circle.svg"> 
+        <li class=${el.active ? "toDoesText" : ""}>
+        <img onclick="toggleActive(${el.id},event)" class="circleImg" src="${el.active ? './assets/done.svg' : './assets/circle.svg'}"> 
         ${el.title}
-        <img class="xImg" src="./assets/x.svg" > 
+        <img onclick="deleteTodoes(${el.id})" class="xImg" src="./assets/x.svg" > 
         </li>
-        
-        
-        
-        
         `
-    )).join("")
+    )).join("");
 
 
-    
-   
-    todoesul.addEventListener("click", event => {
-        if (event.target.matches(".circleImg")) {
-            changeCircleImg(event.target);
+    const activeTodoCount = toDoes.filter(el => !el.active).length;
+    itemsLeft.textContent = `${activeTodoCount} item${activeTodoCount !== 1 ? 's' : ''} left`;
+}
+
+  
+function deleteTodoes(id){
+    toDoes=toDoes.filter(el=>el.id !==id)
+    localStorage.setItem("toDoes",JSON.stringify(toDoes))
+    drawTodo()
+}
+function toggleActive(id,event) {
+    event.stopPropagation();
+    toDoes = toDoes.map(el => {
+        if (el.id === id) {
+            return { ...el, active: !el.active };
+        } else {
+            return el;
         }
     });
+    localStorage.setItem("toDoes",JSON.stringify(toDoes))
+    drawTodo();
+}
 
+clearCompleted.addEventListener("click", () =>{
+    clearCompletedTasks();
+})
 
- 
-  }
-
-  
-  
-
-
-// drawTodo()
-
-
-
-
-
-
-
-
-
-function changeCircleImg(circleImg) {
-    const li = circleImg.closest("li");
-    const todoId = parseInt(circleImg.getAttribute("data-id"));
-
-    const todo = toDoes.find(todo => todo.id === todoId);
-    if (todo) {
-        todo.active = !todo.active;
-    }
-
-    circleImg.classList.toggle("doneImg");
-    li.classList.toggle("doneText");
-
-    if (circleImg.classList.contains("doneImg")) {
-        circleImg.src = "./assets/circle.svg";
-        li.style.textDecoration = "none";
-        li.style.color = "#494C6B";
-    } else {
-        circleImg.src = "./assets/done.svg";
-        li.style.textDecoration = "line-through";
-        li.style.color = "#C8CBE7";
-    }
-
+function  clearCompletedTasks(){
+    toDoes=toDoes.filter(el=> !el.active);
     localStorage.setItem("toDoes", JSON.stringify(toDoes));
+    drawTodo();
+}
+
+
+all.addEventListener("click",()=>{
+    showAllTasks()
+
+
+    all.classList.add("point");
+    active.classList.remove("point");
+    completed.classList.remove("point");
+});
+
+active.addEventListener("click",()=>{
+    showActiveTasks()
+    all.classList.remove("point");
+    active.classList.add("point");
+    completed.classList.remove("point");
+});
+
+completed.addEventListener("click",()=>{
+    showCompletedTasks()
+    all.classList.remove("point");
+    active.classList.remove("point");
+    completed.classList.add("point");
+});
+
+function showAllTasks(){
+    todoesul.innerHTML=toDoes.map(el => createTodoItemHTML(el)).join("");
+};
+
+function showActiveTasks(){
+    const activeTasks = toDoes.filter(el => !el.active);
+    todoesul.innerHTML = activeTasks.map(el => createTodoItemHTML(el)).join("");
+}
+
+
+function showCompletedTasks(){
+    const completedTasks = toDoes.filter(el => el.active);
+    todoesul.innerHTML = completedTasks.map(el => createTodoItemHTML(el)).join("");
+}
+
+
+function createTodoItemHTML(todo) {
+    return `
+        <li class=${todo.active ? "toDoesText" : ""}>
+            <img onclick="toggleActive(${todo.id},event)" class="circleImg" src="${todo.active ? './assets/done.svg' : './assets/circle.svg'}"> 
+            ${todo.title}
+            <img onclick="deleteTodoes(${todo.id})" class="xImg" src="./assets/x.svg" > 
+        </li>
+    `;
 }
 
 
 
+drawTodo()
+loadDarkModeState();
 
-  drawTodo()
+
+
+
